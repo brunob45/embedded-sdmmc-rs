@@ -29,7 +29,7 @@ hex-literal = "0.4.1"
 sha2 = "0.10"
 
 [features]
-default = ["log"]
+default = ["log", "is_sync"]
 defmt-log = ["dep:defmt"]
 log = ["dep:log"]
-async = []
+is_sync = ["maybe-async/is_sync"]
