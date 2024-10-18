@@ -3,6 +3,10 @@ use crate::{
     filesystem::{ClusterId, DirEntry, Handle},
     BlockDevice, Error, RawVolume, VolumeManager,
 };
+
+#[cfg(not(feature="async"))]
+use embedded_io::{ErrorType, Read, Seek, SeekFrom, Write};
+#[cfg(feature="async")]
 use embedded_io_async::{ErrorType, Read, Seek, SeekFrom, Write};
 
 /// A handle for an open file on disk.

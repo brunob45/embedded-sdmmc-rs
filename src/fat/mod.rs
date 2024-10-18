@@ -25,6 +25,7 @@ impl BlockCache {
             idx: None,
         }
     }
+    #[maybe_async::maybe_async]
     pub(crate) async fn read<D>(
         &mut self,
         block_device: &mut D,

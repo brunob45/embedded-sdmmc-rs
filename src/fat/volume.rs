@@ -273,6 +273,7 @@ impl FatVolume {
     }
 
     /// Look in the FAT to see which cluster comes next.
+    #[maybe_async::maybe_async]
     pub(crate) async fn next_cluster<D>(
         &self,
         block_device: &mut D,
@@ -377,6 +378,7 @@ impl FatVolume {
 
     /// Finds a empty entry space and writes the new entry to it, allocates a new cluster if it's
     /// needed
+    #[maybe_async::maybe_async]
     pub(crate) async fn write_new_directory_entry<D, T>(
         &mut self,
         block_device: &mut D,
@@ -537,6 +539,7 @@ impl FatVolume {
 
     /// Calls callback `func` with every valid entry in the given directory.
     /// Useful for performing directory listings.
+    #[maybe_async::maybe_async]
     pub(crate) async fn iterate_dir<D, F>(
         &self,
         block_device: &mut D,
@@ -670,6 +673,7 @@ impl FatVolume {
     }
 
     /// Get an entry from the given directory
+    #[maybe_async::maybe_async]
     pub(crate) async fn find_directory_entry<D>(
         &self,
         block_device: &mut D,
@@ -790,6 +794,7 @@ impl FatVolume {
     }
 
     /// Delete an entry from the given directory
+    #[maybe_async::maybe_async]
     pub(crate) async fn delete_directory_entry<D>(
         &self,
         block_device: &mut D,
@@ -930,6 +935,7 @@ impl FatVolume {
     }
 
     /// Finds the next free cluster after the start_cluster and before end_cluster
+    #[maybe_async::maybe_async]
     pub(crate) async fn find_next_free_cluster<D>(
         &self,
         block_device: &mut D,
@@ -1010,6 +1016,7 @@ impl FatVolume {
     }
 
     /// Tries to allocate a cluster
+    #[maybe_async::maybe_async]
     pub(crate) async fn alloc_cluster<D>(
         &mut self,
         block_device: &mut D,
@@ -1096,6 +1103,7 @@ impl FatVolume {
     }
 
     /// Marks the input cluster as an EOF and all the subsequent clusters in the chain as free
+    #[maybe_async::maybe_async]
     pub(crate) async fn truncate_cluster_chain<D>(
         &mut self,
         block_device: &mut D,
@@ -1145,6 +1153,7 @@ impl FatVolume {
     }
 
     /// Writes a Directory Entry to the disk
+    #[maybe_async::maybe_async]
     pub(crate) async fn write_entry_to_disk<D>(
         &self,
         block_device: &mut D,
