@@ -108,6 +108,7 @@ where
     ///
     /// We do not support GUID Partition Table disks. Nor do we support any
     /// concept of drive letters - that is for a higher layer to handle.
+    #[maybe_async::maybe_async]
     pub async fn open_volume(
         &mut self,
         volume_idx: VolumeIdx,
@@ -123,6 +124,7 @@ where
     ///
     /// This function gives you a `RawVolume` and you must close the volume by
     /// calling `VolumeManager::close_volume`.
+    #[maybe_async::maybe_async]
     pub async fn open_raw_volume(&mut self, volume_idx: VolumeIdx) -> Result<RawVolume, Error<D::Error>> {
         const PARTITION1_START: usize = 446;
         const PARTITION2_START: usize = PARTITION1_START + PARTITION_INFO_LENGTH;
@@ -244,6 +246,7 @@ where
     /// You can then read the directory entries with `iterate_dir` and `open_file_in_dir`.
     ///
     /// Passing "." as the name results in opening the `parent_dir` a second time.
+    #[maybe_async::maybe_async]
     pub async fn open_dir<N>(
         &mut self,
         parent_dir: RawDirectory,
@@ -356,6 +359,7 @@ where
     }
 
     /// Look in a directory for a named file.
+    #[maybe_async::maybe_async]
     pub async fn find_directory_entry<N>(
         &mut self,
         directory: RawDirectory,
@@ -385,6 +389,7 @@ where
     /// object is already locked in order to do the iteration.
     ///
     /// </div>
+    #[maybe_async::maybe_async]
     pub async fn iterate_dir<F>(&mut self, directory: RawDirectory, func: F) -> Result<(), Error<D::Error>>
     where
         F: FnMut(&DirEntry),
@@ -401,6 +406,7 @@ where
     }
 
     /// Open a file with the given full path. A file can only be opened once.
+    #[maybe_async::maybe_async]
     pub async fn open_file_in_dir<N>(
         &mut self,
         directory: RawDirectory,
@@ -578,6 +584,7 @@ where
     }
 
     /// Delete a closed file with the given filename, if it exists.
+    #[maybe_async::maybe_async]
     pub async fn delete_file_in_dir<N>(
         &mut self,
         directory: RawDirectory,
@@ -619,6 +626,7 @@ where
     ///
     /// Will look in the BPB for a volume label, and if nothing is found, will
     /// search the root directory for a volume label.
+    #[maybe_async::maybe_async]
     pub async fn get_root_volume_label(
         &mut self,
         raw_volume: RawVolume,
@@ -660,6 +668,7 @@ where
     }
 
     /// Read from an open file.
+    #[maybe_async::maybe_async]
     pub async fn read(&mut self, file: RawFile, buffer: &mut [u8]) -> Result<usize, Error<D::Error>> {
         let mut data = self.data.try_borrow_mut().map_err(|_| Error::LockError)?;
 
@@ -703,6 +712,7 @@ where
     }
 
     /// Write to a open file.
+    #[maybe_async::maybe_async]
     pub async fn write(&mut self, file: RawFile, buffer: &[u8]) -> Result<(), Error<D::Error>> {
         #[cfg(feature = "defmt-log")]
         debug!("write(file={:?}, buffer={:x}", file, buffer);
@@ -834,6 +844,7 @@ where
     }
 
     /// Close a file with the given raw file handle.
+    #[maybe_async::maybe_async]
     pub async fn close_file(&mut self, file: RawFile) -> Result<(), Error<D::Error>> {
         let flush_result = self.flush_file(file).await;
         let mut data = self.data.try_borrow_mut().map_err(|_| Error::LockError)?;
@@ -843,6 +854,7 @@ where
     }
 
     /// Flush (update the entry) for a file with the given raw file handle.
+    #[maybe_async::maybe_async]
     pub async fn flush_file(&mut self, file: RawFile) -> Result<(), Error<D::Error>> {
         use core::ops::DerefMut;
         let mut data = self.data.try_borrow_mut().map_err(|_| Error::LockError)?;
@@ -935,6 +947,7 @@ where
     }
 
     /// Create a directory in a given directory.
+    #[maybe_async::maybe_async]
     pub async fn make_dir_in_dir<N>(
         &mut self,
         directory: RawDirectory,
@@ -1158,6 +1171,7 @@ impl<const MAX_DIRS: usize, const MAX_FILES: usize, const MAX_VOLUMES: usize>
     /// * the index for the block on the disk that contains the data we want,
     /// * the byte offset into that block for the data we want, and
     /// * how many bytes remain in that block.
+    #[maybe_async::maybe_async]
     async fn find_data_on_disk<D>(
         &self,
         block_device: &mut D,

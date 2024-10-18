@@ -110,6 +110,7 @@ where
     /// Open a directory.
     ///
     /// You can then read the directory entries with `iterate_dir` and `open_file_in_dir`.
+    #[maybe_async::maybe_async]
     pub async fn open_dir<N>(
         &mut self,
         name: N,
@@ -124,6 +125,7 @@ where
     /// Change to a directory, mutating this object.
     ///
     /// You can then read the directory entries with `iterate_dir` and `open_file_in_dir`.
+    #[maybe_async::maybe_async]
     pub async fn change_dir<N>(&mut self, name: N) -> Result<(), Error<D::Error>>
     where
         N: ToShortFileName,
@@ -135,6 +137,7 @@ where
     }
 
     /// Look in a directory for a named file.
+    #[maybe_async::maybe_async]
     pub async fn find_directory_entry<N>(&mut self, name: N) -> Result<DirEntry, Error<D::Error>>
     where
         N: ToShortFileName,
@@ -152,6 +155,7 @@ where
     /// object is already locked in order to do the iteration.
     ///
     /// </div>
+    #[maybe_async::maybe_async]
     pub async fn iterate_dir<F>(&mut self, func: F) -> Result<(), Error<D::Error>>
     where
         F: FnMut(&DirEntry),
@@ -160,6 +164,7 @@ where
     }
 
     /// Open a file with the given full path. A file can only be opened once.
+    #[maybe_async::maybe_async]
     pub async fn open_file_in_dir<N>(
         &mut self,
         name: N,
@@ -175,6 +180,7 @@ where
     }
 
     /// Delete a closed file with the given filename, if it exists.
+    #[maybe_async::maybe_async]
     pub async fn delete_file_in_dir<N>(&mut self, name: N) -> Result<(), Error<D::Error>>
     where
         N: ToShortFileName,
@@ -183,6 +189,7 @@ where
     }
 
     /// Make a directory inside this directory
+    #[maybe_async::maybe_async]
     pub async fn make_dir_in_dir<N>(&mut self, name: N) -> Result<(), Error<D::Error>>
     where
         N: ToShortFileName,

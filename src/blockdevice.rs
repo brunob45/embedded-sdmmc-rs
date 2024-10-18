@@ -40,6 +40,7 @@ pub struct BlockIter {
 /// A block device - a device which can read and write blocks (or
 /// sectors). Only supports devices which are <= 2 TiB in size.
 #[allow(async_fn_in_trait)]
+#[maybe_async::maybe_async(AFIT)]
 pub trait BlockDevice {
     /// The errors that the `BlockDevice` can return. Must be debug formattable.
     type Error: core::fmt::Debug;

@@ -163,6 +163,7 @@ pub struct FatVolume {
 
 impl FatVolume {
     /// Write a new entry in the FAT
+    #[maybe_async::maybe_async]
     pub async fn update_info_sector<D>(&mut self, block_device: &mut D) -> Result<(), Error<D::Error>>
     where
         D: BlockDevice,
@@ -205,6 +206,7 @@ impl FatVolume {
     }
 
     /// Write a new entry in the FAT
+    #[maybe_async::maybe_async]
     async fn update_fat<D>(
         &mut self,
         block_device: &mut D,
@@ -555,6 +557,7 @@ impl FatVolume {
         }
     }
 
+    #[maybe_async::maybe_async]
     async fn iterate_fat16<D, F>(
         &self,
         dir_info: &DirectoryInfo,
@@ -616,6 +619,7 @@ impl FatVolume {
         Ok(())
     }
 
+    #[maybe_async::maybe_async]
     async fn iterate_fat32<D, F>(
         &self,
         dir_info: &DirectoryInfo,
@@ -754,6 +758,7 @@ impl FatVolume {
     }
 
     /// Finds an entry in a given block of directory entries.
+    #[maybe_async::maybe_async]
     async fn find_entry_in_block<D>(
         &self,
         block_device: &mut D,
@@ -890,6 +895,7 @@ impl FatVolume {
     ///
     /// Entries are marked as deleted by setting the first byte of the file name
     /// to a special value.
+    #[maybe_async::maybe_async]
     async fn delete_entry_in_block<D>(
         &self,
         block_device: &mut D,
@@ -1171,6 +1177,7 @@ impl FatVolume {
 
 /// Load the boot parameter block from the start of the given partition and
 /// determine if the partition contains a valid FAT16 or FAT32 file system.
+#[maybe_async::maybe_async]
 pub async fn parse_volume<D>(
     block_device: &mut D,
     lba_start: BlockIdx,

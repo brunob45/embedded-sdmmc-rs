@@ -76,11 +76,13 @@ where
     /// Read from the file
     ///
     /// Returns how many bytes were read, or an error.
+    #[maybe_async::maybe_async]
     pub async fn read(&mut self, buffer: &mut [u8]) -> Result<usize, crate::Error<D::Error>> {
         self.volume_mgr.read(self.raw_file, buffer).await
     }
 
     /// Write to the file
+    #[maybe_async::maybe_async]
     pub async fn write(&mut self, buffer: &[u8]) -> Result<(), crate::Error<D::Error>> {
         self.volume_mgr.write(self.raw_file, buffer).await
     }
@@ -130,6 +132,7 @@ where
     }
 
     /// Flush any written data by updating the directory entry.
+    #[maybe_async::maybe_async]
     pub async fn flush(&mut self) -> Result<(), Error<D::Error>> {
         self.volume_mgr.flush_file(self.raw_file).await
     }
@@ -138,6 +141,7 @@ where
     /// to using [`core::mem::drop`] or letting the `File` go out of scope,
     /// except this lets the user handle any errors that may occur in the process,
     /// whereas when using drop, any errors will be discarded silently.
+    #[maybe_async::maybe_async]
     pub async fn close(self) -> Result<(), Error<D::Error>> {
         let result = self.volume_mgr.close_file(self.raw_file).await;
         core::mem::forget(self);
@@ -186,6 +190,7 @@ impl<
         const MAX_VOLUMES: usize,
     > Read for File<'_, D, T, MAX_DIRS, MAX_FILES, MAX_VOLUMES>
 {
+    #[maybe_async::maybe_async]
     async fn read(&mut self, buf: &mut [u8]) -> Result<usize, Self::Error> {
         if buf.is_empty() {
             Ok(0)
@@ -203,6 +208,7 @@ impl<
         const MAX_VOLUMES: usize,
     > Write for File<'_, D, T, MAX_DIRS, MAX_FILES, MAX_VOLUMES>
 {
+    #[maybe_async::maybe_async]
     async fn write(&mut self, buf: &[u8]) -> Result<usize, Self::Error> {
         if buf.is_empty() {
             Ok(0)
@@ -211,6 +217,7 @@ impl<
             Ok(buf.len())
         }
     }
+    #[maybe_async::maybe_async]
 
     async fn flush(&mut self) -> Result<(), Self::Error> {
         Self::flush(self).await
@@ -225,6 +232,7 @@ impl<
         const MAX_VOLUMES: usize,
     > Seek for File<'_, D, T, MAX_DIRS, MAX_FILES, MAX_VOLUMES>
 {
+    #[maybe_async::maybe_async]
     async fn seek(&mut self, pos: SeekFrom) -> Result<u64, Self::Error> {
         match pos {
             SeekFrom::Start(offset) => {
