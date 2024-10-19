@@ -84,7 +84,7 @@ use embedded_io_async::ErrorKind;
 use filesystem::Handle;
 
 #[doc(inline)]
-pub use crate::blockdevice::{Block, BlockCount, BlockDevice, BlockIdx};
+pub use crate::blockdevice::{Block, BlockCache, BlockCount, BlockDevice, BlockIdx};
 
 #[doc(inline)]
 pub use crate::fat::{FatVolume, VolumeName};
