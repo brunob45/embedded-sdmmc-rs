@@ -164,7 +164,7 @@ pub struct FatVolume {
 impl FatVolume {
     /// Write a new entry in the FAT
     #[maybe_async::maybe_async]
-    pub async fn update_info_sector<D>(&mut self, block_device: &mut D) -> Result<(), Error<D::Error>>
+    pub async fn update_info_sector<D>(&mut self, block_device: &D) -> Result<(), Error<D::Error>>
     where
         D: BlockDevice,
     {
@@ -209,7 +209,7 @@ impl FatVolume {
     #[maybe_async::maybe_async]
     async fn update_fat<D>(
         &mut self,
-        block_device: &mut D,
+        block_device: &D,
         cluster: ClusterId,
         new_value: ClusterId,
     ) -> Result<(), Error<D::Error>>
@@ -276,7 +276,7 @@ impl FatVolume {
     #[maybe_async::maybe_async]
     pub(crate) async fn next_cluster<D>(
         &self,
-        block_device: &mut D,
+        block_device: &D,
         cluster: ClusterId,
         fat_block_cache: &mut BlockCache,
     ) -> Result<ClusterId, Error<D::Error>>
@@ -381,7 +381,7 @@ impl FatVolume {
     #[maybe_async::maybe_async]
     pub(crate) async fn write_new_directory_entry<D, T>(
         &mut self,
-        block_device: &mut D,
+        block_device: &D,
         time_source: &T,
         dir_cluster: ClusterId,
         name: ShortFileName,
@@ -542,7 +542,7 @@ impl FatVolume {
     #[maybe_async::maybe_async]
     pub(crate) async fn iterate_dir<D, F>(
         &self,
-        block_device: &mut D,
+        block_device: &D,
         dir_info: &DirectoryInfo,
         func: F,
     ) -> Result<(), Error<D::Error>>
@@ -565,7 +565,7 @@ impl FatVolume {
         &self,
         dir_info: &DirectoryInfo,
         fat16_info: &Fat16Info,
-        block_device: &mut D,
+        block_device: &D,
         mut func: F,
     ) -> Result<(), Error<D::Error>>
     where
@@ -627,7 +627,7 @@ impl FatVolume {
         &self,
         dir_info: &DirectoryInfo,
         fat32_info: &Fat32Info,
-        block_device: &mut D,
+        block_device: &D,
         mut func: F,
     ) -> Result<(), Error<D::Error>>
     where
@@ -676,7 +676,7 @@ impl FatVolume {
     #[maybe_async::maybe_async]
     pub(crate) async fn find_directory_entry<D>(
         &self,
-        block_device: &mut D,
+        block_device: &D,
         dir_info: &DirectoryInfo,
         match_name: &ShortFileName,
     ) -> Result<DirEntry, Error<D::Error>>
@@ -765,7 +765,7 @@ impl FatVolume {
     #[maybe_async::maybe_async]
     async fn find_entry_in_block<D>(
         &self,
-        block_device: &mut D,
+        block_device: &D,
         fat_type: FatType,
         match_name: &ShortFileName,
         block: BlockIdx,
@@ -797,7 +797,7 @@ impl FatVolume {
     #[maybe_async::maybe_async]
     pub(crate) async fn delete_directory_entry<D>(
         &self,
-        block_device: &mut D,
+        block_device: &D,
         dir_info: &DirectoryInfo,
         match_name: &ShortFileName,
     ) -> Result<(), Error<D::Error>>
@@ -903,7 +903,7 @@ impl FatVolume {
     #[maybe_async::maybe_async]
     async fn delete_entry_in_block<D>(
         &self,
-        block_device: &mut D,
+        block_device: &D,
         match_name: &ShortFileName,
         block: BlockIdx,
     ) -> Result<(), Error<D::Error>>
@@ -938,7 +938,7 @@ impl FatVolume {
     #[maybe_async::maybe_async]
     pub(crate) async fn find_next_free_cluster<D>(
         &self,
-        block_device: &mut D,
+        block_device: &D,
         start_cluster: ClusterId,
         end_cluster: ClusterId,
     ) -> Result<ClusterId, Error<D::Error>>
@@ -1019,7 +1019,7 @@ impl FatVolume {
     #[maybe_async::maybe_async]
     pub(crate) async fn alloc_cluster<D>(
         &mut self,
-        block_device: &mut D,
+        block_device: &D,
         prev_cluster: Option<ClusterId>,
         zero: bool,
     ) -> Result<ClusterId, Error<D::Error>>
@@ -1106,7 +1106,7 @@ impl FatVolume {
     #[maybe_async::maybe_async]
     pub(crate) async fn truncate_cluster_chain<D>(
         &mut self,
-        block_device: &mut D,
+        block_device: &D,
         cluster: ClusterId,
     ) -> Result<(), Error<D::Error>>
     where
@@ -1156,7 +1156,7 @@ impl FatVolume {
     #[maybe_async::maybe_async]
     pub(crate) async fn write_entry_to_disk<D>(
         &self,
-        block_device: &mut D,
+        block_device: &D,
         entry: &DirEntry,
     ) -> Result<(), Error<D::Error>>
     where
@@ -1188,7 +1188,7 @@ impl FatVolume {
 /// determine if the partition contains a valid FAT16 or FAT32 file system.
 #[maybe_async::maybe_async]
 pub async fn parse_volume<D>(
-    block_device: &mut D,
+    block_device: &D,
     lba_start: BlockIdx,
     num_blocks: BlockCount,
 ) -> Result<VolumeType, Error<D::Error>>

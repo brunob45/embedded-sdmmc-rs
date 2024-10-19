@@ -110,7 +110,7 @@ where
     /// concept of drive letters - that is for a higher layer to handle.
     #[maybe_async::maybe_async]
     pub async fn open_volume(
-        &mut self,
+        &self,
         volume_idx: VolumeIdx,
     ) -> Result<Volume<D, T, MAX_DIRS, MAX_FILES, MAX_VOLUMES>, Error<D::Error>> {
         let v = self.open_raw_volume(volume_idx).await?;
@@ -125,7 +125,7 @@ where
     /// This function gives you a `RawVolume` and you must close the volume by
     /// calling `VolumeManager::close_volume`.
     #[maybe_async::maybe_async]
-    pub async fn open_raw_volume(&mut self, volume_idx: VolumeIdx) -> Result<RawVolume, Error<D::Error>> {
+    pub async fn open_raw_volume(&self, volume_idx: VolumeIdx) -> Result<RawVolume, Error<D::Error>> {
         const PARTITION1_START: usize = 446;
         const PARTITION2_START: usize = PARTITION1_START + PARTITION_INFO_LENGTH;
         const PARTITION3_START: usize = PARTITION2_START + PARTITION_INFO_LENGTH;
@@ -200,7 +200,7 @@ where
             | PARTITION_ID_FAT32_LBA
             | PARTITION_ID_FAT16_LBA
             | PARTITION_ID_FAT16 => {
-                let volume = fat::parse_volume(&mut self.block_device, lba_start, num_blocks).await?;
+                let volume = fat::parse_volume(&self.block_device, lba_start, num_blocks).await?;
                 let id = RawVolume(data.id_generator.generate());
                 let info = VolumeInfo {
                     raw_volume: id,
@@ -248,7 +248,7 @@ where
     /// Passing "." as the name results in opening the `parent_dir` a second time.
     #[maybe_async::maybe_async]
     pub async fn open_dir<N>(
-        &mut self,
+        &self,
         parent_dir: RawDirectory,
         name: N,
     ) -> Result<RawDirectory, Error<D::Error>>
@@ -288,7 +288,7 @@ where
 
         let dir_entry = match &data.open_volumes[volume_idx].volume_type {
             VolumeType::Fat(fat) => fat.find_directory_entry(
-                &mut self.block_device,
+                &self.block_device,
                 &data.open_dirs[parent_dir_idx],
                 &short_file_name,
             ).await?,
@@ -361,7 +361,7 @@ where
     /// Look in a directory for a named file.
     #[maybe_async::maybe_async]
     pub async fn find_directory_entry<N>(
-        &mut self,
+        &self,
         directory: RawDirectory,
         name: N,
     ) -> Result<DirEntry, Error<D::Error>>
@@ -375,7 +375,7 @@ where
         match &data.open_volumes[volume_idx].volume_type {
             VolumeType::Fat(fat) => {
                 let sfn = name.to_short_filename().map_err(Error::FilenameError)?;
-                fat.find_directory_entry(&mut self.block_device, &data.open_dirs[directory_idx], &sfn).await
+                fat.find_directory_entry(&self.block_device, &data.open_dirs[directory_idx], &sfn).await
             }
         }
     }
@@ -390,7 +390,7 @@ where
     ///
     /// </div>
     #[maybe_async::maybe_async]
-    pub async fn iterate_dir<F>(&mut self, directory: RawDirectory, func: F) -> Result<(), Error<D::Error>>
+    pub async fn iterate_dir<F>(&self, directory: RawDirectory, func: F) -> Result<(), Error<D::Error>>
     where
         F: FnMut(&DirEntry),
     {
@@ -400,7 +400,7 @@ where
         let volume_idx = data.get_volume_by_id(data.open_dirs[directory_idx].raw_volume)?;
         match &data.open_volumes[volume_idx].volume_type {
             VolumeType::Fat(fat) => {
-                fat.iterate_dir(&mut self.block_device, &data.open_dirs[directory_idx], func).await
+                fat.iterate_dir(&self.block_device, &data.open_dirs[directory_idx], func).await
             }
         }
     }
@@ -408,7 +408,7 @@ where
     /// Open a file with the given full path. A file can only be opened once.
     #[maybe_async::maybe_async]
     pub async fn open_file_in_dir<N>(
-        &mut self,
+        &self,
         directory: RawDirectory,
         name: N,
         mode: Mode,
@@ -431,7 +431,7 @@ where
 
         let dir_entry = match &volume_info.volume_type {
             VolumeType::Fat(fat) => {
-                fat.find_directory_entry(&mut self.block_device, &data.open_dirs[directory_idx], &sfn).await
+                fat.find_directory_entry(&self.block_device, &data.open_dirs[directory_idx], &sfn).await
             }
         };
 
@@ -474,7 +474,7 @@ where
                 let volume_idx = data.get_volume_by_id(volume_id)?;
                 let entry = match &mut data.open_volumes[volume_idx].volume_type {
                     VolumeType::Fat(fat) => fat.write_new_directory_entry(
-                        &mut self.block_device,
+                        &self.block_device,
                         &self.time_source,
                         cluster,
                         sfn,
@@ -557,14 +557,14 @@ where
                         };
                         match &mut data.open_volumes[volume_idx].volume_type {
                             VolumeType::Fat(fat) => {
-                                fat.truncate_cluster_chain(&mut self.block_device, file.entry.cluster).await?
+                                fat.truncate_cluster_chain(&self.block_device, file.entry.cluster).await?
                             }
                         };
                         file.update_length(0);
                         match &data.open_volumes[volume_idx].volume_type {
                             VolumeType::Fat(fat) => {
                                 file.entry.mtime = self.time_source.get_timestamp();
-                                fat.write_entry_to_disk(&mut self.block_device, &file.entry).await?;
+                                fat.write_entry_to_disk(&self.block_device, &file.entry).await?;
                             }
                         };
 
@@ -586,7 +586,7 @@ where
     /// Delete a closed file with the given filename, if it exists.
     #[maybe_async::maybe_async]
     pub async fn delete_file_in_dir<N>(
-        &mut self,
+        &self,
         directory: RawDirectory,
         name: N,
     ) -> Result<(), Error<D::Error>>
@@ -601,7 +601,7 @@ where
         let sfn = name.to_short_filename().map_err(Error::FilenameError)?;
 
         let dir_entry = match &data.open_volumes[volume_idx].volume_type {
-            VolumeType::Fat(fat) => fat.find_directory_entry(&mut self.block_device, dir_info, &sfn).await,
+            VolumeType::Fat(fat) => fat.find_directory_entry(&self.block_device, dir_info, &sfn).await,
         }?;
 
         if dir_entry.attributes.is_directory() {
@@ -615,7 +615,7 @@ where
         let volume_idx = data.get_volume_by_id(dir_info.raw_volume)?;
         match &data.open_volumes[volume_idx].volume_type {
             VolumeType::Fat(fat) => {
-                fat.delete_directory_entry(&mut self.block_device, dir_info, &sfn).await?
+                fat.delete_directory_entry(&self.block_device, dir_info, &sfn).await?
             }
         }
 
@@ -628,7 +628,7 @@ where
     /// search the root directory for a volume label.
     #[maybe_async::maybe_async]
     pub async fn get_root_volume_label(
-        &mut self,
+        &self,
         raw_volume: RawVolume,
     ) -> Result<Option<crate::VolumeName>, Error<D::Error>> {
         debug!("Reading volume label for {:?}", raw_volume);
@@ -649,7 +649,7 @@ where
         drop(data);
 
         // Nothing in the BPB, let's do it the slow way
-        let mut root_dir = self.open_root_dir(raw_volume)?.to_directory(self);
+        let root_dir = self.open_root_dir(raw_volume)?.to_directory(self);
         let mut maybe_volume_name = None;
         root_dir.iterate_dir(|de| {
             if maybe_volume_name.is_none()
@@ -669,7 +669,7 @@ where
 
     /// Read from an open file.
     #[maybe_async::maybe_async]
-    pub async fn read(&mut self, file: RawFile, buffer: &mut [u8]) -> Result<usize, Error<D::Error>> {
+    pub async fn read(&self, file: RawFile, buffer: &mut [u8]) -> Result<usize, Error<D::Error>> {
         let mut data = self.data.try_borrow_mut().map_err(|_| Error::LockError)?;
 
         let file_idx = data.get_file_by_id(file)?;
@@ -683,7 +683,7 @@ where
         while space > 0 && !data.open_files[file_idx].eof() {
             let mut current_cluster = data.open_files[file_idx].current_cluster;
             let (block_idx, block_offset, block_avail) = data.find_data_on_disk(
-                &mut self.block_device,
+                &self.block_device,
                 volume_idx,
                 &mut current_cluster,
                 data.open_files[file_idx].entry.cluster,
@@ -713,7 +713,7 @@ where
 
     /// Write to a open file.
     #[maybe_async::maybe_async]
-    pub async fn write(&mut self, file: RawFile, buffer: &[u8]) -> Result<(), Error<D::Error>> {
+    pub async fn write(&self, file: RawFile, buffer: &[u8]) -> Result<(), Error<D::Error>> {
         #[cfg(feature = "defmt-log")]
         debug!("write(file={:?}, buffer={:x}", file, buffer);
 
@@ -738,7 +738,7 @@ where
             data.open_files[file_idx].entry.cluster =
                 match data.open_volumes[volume_idx].volume_type {
                     VolumeType::Fat(ref mut fat) => {
-                        fat.alloc_cluster(&mut self.block_device, None, false).await?
+                        fat.alloc_cluster(&self.block_device, None, false).await?
                     }
                 };
             debug!(
@@ -769,7 +769,7 @@ where
             );
             let current_offset = data.open_files[file_idx].current_offset;
             let (block_idx, block_offset, block_avail) = match data.find_data_on_disk(
-                &mut self.block_device,
+                &self.block_device,
                 volume_idx,
                 &mut current_cluster,
                 data.open_files[file_idx].entry.cluster,
@@ -787,7 +787,7 @@ where
                     match data.open_volumes[volume_idx].volume_type {
                         VolumeType::Fat(ref mut fat) => {
                             if fat
-                                .alloc_cluster(&mut self.block_device, Some(current_cluster.1), false).await
+                                .alloc_cluster(&self.block_device, Some(current_cluster.1), false).await
                                 .is_err()
                             {
                                 return Err(Error::DiskFull);
@@ -795,7 +795,7 @@ where
                             debug!("Allocated new FAT cluster, finding offsets...");
                             let new_offset = data
                                 .find_data_on_disk(
-                                    &mut self.block_device,
+                                    &self.block_device,
                                     volume_idx,
                                     &mut current_cluster,
                                     data.open_files[file_idx].entry.cluster,
@@ -845,7 +845,7 @@ where
 
     /// Close a file with the given raw file handle.
     #[maybe_async::maybe_async]
-    pub async fn close_file(&mut self, file: RawFile) -> Result<(), Error<D::Error>> {
+    pub async fn close_file(&self, file: RawFile) -> Result<(), Error<D::Error>> {
         let flush_result = self.flush_file(file).await;
         let mut data = self.data.try_borrow_mut().map_err(|_| Error::LockError)?;
         let file_idx = data.get_file_by_id(file)?;
@@ -855,7 +855,7 @@ where
 
     /// Flush (update the entry) for a file with the given raw file handle.
     #[maybe_async::maybe_async]
-    pub async fn flush_file(&mut self, file: RawFile) -> Result<(), Error<D::Error>> {
+    pub async fn flush_file(&self, file: RawFile) -> Result<(), Error<D::Error>> {
         use core::ops::DerefMut;
         let mut data = self.data.try_borrow_mut().map_err(|_| Error::LockError)?;
         let data = data.deref_mut();
@@ -867,13 +867,13 @@ where
             match &mut data.open_volumes[volume_idx].volume_type {
                 VolumeType::Fat(fat) => {
                     debug!("Updating FAT info sector");
-                    fat.update_info_sector(&mut self.block_device).await?;
+                    fat.update_info_sector(&self.block_device).await?;
                     debug!("Updating dir entry {:?}", data.open_files[file_id].entry);
                     if data.open_files[file_id].entry.size != 0 {
                         // If you have a length, you must have a cluster
                         assert!(data.open_files[file_id].entry.cluster.0 != 0);
                     }
-                    fat.write_entry_to_disk(&mut self.block_device, &data.open_files[file_id].entry).await?;
+                    fat.write_entry_to_disk(&self.block_device, &data.open_files[file_id].entry).await?;
                 }
             };
         }
@@ -949,7 +949,7 @@ where
     /// Create a directory in a given directory.
     #[maybe_async::maybe_async]
     pub async fn make_dir_in_dir<N>(
-        &mut self,
+        &self,
         directory: RawDirectory,
         name: N,
     ) -> Result<(), Error<D::Error>>
@@ -981,7 +981,7 @@ where
         // Does an entry exist with this name?
         let maybe_dir_entry = match &volume_info.volume_type {
             VolumeType::Fat(fat) => {
-                fat.find_directory_entry(&mut self.block_device, parent_directory_info, &sfn).await
+                fat.find_directory_entry(&self.block_device, parent_directory_info, &sfn).await
             }
         };
 
@@ -1008,7 +1008,7 @@ where
             VolumeType::Fat(fat) => {
                 debug!("Making dir entry");
                 let mut new_dir_entry_in_parent = fat.write_new_directory_entry(
-                    &mut self.block_device,
+                    &self.block_device,
                     &self.time_source,
                     parent_directory_info.cluster,
                     sfn,
@@ -1016,9 +1016,9 @@ where
                 ).await?;
                 if new_dir_entry_in_parent.cluster == ClusterId::EMPTY {
                     new_dir_entry_in_parent.cluster =
-                        fat.alloc_cluster(&mut self.block_device, None, false).await?;
+                        fat.alloc_cluster(&self.block_device, None, false).await?;
                     // update the parent dir with the cluster of the new dir
-                    fat.write_entry_to_disk(&mut self.block_device, &new_dir_entry_in_parent).await?;
+                    fat.write_entry_to_disk(&self.block_device, &new_dir_entry_in_parent).await?;
                 }
                 let new_dir_start_block = fat.cluster_to_block(new_dir_entry_in_parent.cluster);
                 debug!("Made new dir entry {:?}", new_dir_entry_in_parent);
@@ -1174,7 +1174,7 @@ impl<const MAX_DIRS: usize, const MAX_FILES: usize, const MAX_VOLUMES: usize>
     #[maybe_async::maybe_async]
     async fn find_data_on_disk<D>(
         &self,
-        block_device: &mut D,
+        block_device: &D,
         volume_idx: usize,
         start: &mut (u32, ClusterId),
         file_start: ClusterId,
@@ -1483,7 +1483,7 @@ mod tests {
 
     #[test]
     fn partition0() {
-        let mut c: VolumeManager<DummyBlockDevice, Clock, 2, 2> =
+        let c: VolumeManager<DummyBlockDevice, Clock, 2, 2> =
             VolumeManager::new_with_limits(DummyBlockDevice, Clock, 0xAA00_0000);
 
         let v = c.open_raw_volume(VolumeIdx(0)).unwrap();

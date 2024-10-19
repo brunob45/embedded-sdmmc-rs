@@ -163,7 +163,7 @@ where
     ///
     /// This will trigger card (re-)initialisation.
     #[maybe_async::maybe_async]
-    async fn read(&mut self, blocks: &mut [Block], start_block_idx: BlockIdx) -> Result<(), Self::Error> {
+    async fn read(&self, blocks: &mut [Block], start_block_idx: BlockIdx) -> Result<(), Self::Error> {
         let mut inner = self.inner.borrow_mut();
         debug!("Read {} blocks @ {}", blocks.len(), start_block_idx.0,);
         inner.check_init()?;
@@ -174,7 +174,7 @@ where
     ///
     /// This will trigger card (re-)initialisation.
     #[maybe_async::maybe_async]
-    async fn write(&mut self, blocks: &[Block], start_block_idx: BlockIdx) -> Result<(), Self::Error> {
+    async fn write(&self, blocks: &[Block], start_block_idx: BlockIdx) -> Result<(), Self::Error> {
         let mut inner = self.inner.borrow_mut();
         debug!("Writing {} blocks @ {}", blocks.len(), start_block_idx.0);
         inner.check_init()?;

@@ -28,7 +28,7 @@ impl BlockCache {
     #[maybe_async::maybe_async]
     pub(crate) async fn read<D>(
         &mut self,
-        block_device: &mut D,
+        block_device: &D,
         block_idx: BlockIdx,
     ) -> Result<&Block, Error<D::Error>>
     where

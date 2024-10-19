@@ -34,7 +34,7 @@ impl RawFile {
     /// Convert a raw file into a droppable [`File`]
     pub fn to_file<D, T, const MAX_DIRS: usize, const MAX_FILES: usize, const MAX_VOLUMES: usize>(
         self,
-        volume_mgr: &mut VolumeManager<D, T, MAX_DIRS, MAX_FILES, MAX_VOLUMES>,
+        volume_mgr: &VolumeManager<D, T, MAX_DIRS, MAX_FILES, MAX_VOLUMES>,
     ) -> File<D, T, MAX_DIRS, MAX_FILES, MAX_VOLUMES>
     where
         D: crate::BlockDevice,
@@ -58,7 +58,7 @@ where
     T: crate::TimeSource,
 {
     raw_file: RawFile,
-    volume_mgr: &'a mut VolumeManager<D, T, MAX_DIRS, MAX_FILES, MAX_VOLUMES>,
+    volume_mgr: &'a VolumeManager<D, T, MAX_DIRS, MAX_FILES, MAX_VOLUMES>,
 }
 
 impl<'a, D, T, const MAX_DIRS: usize, const MAX_FILES: usize, const MAX_VOLUMES: usize>
@@ -70,7 +70,7 @@ where
     /// Create a new `File` from a `RawFile`
     pub fn new(
         raw_file: RawFile,
-        volume_mgr: &'a mut VolumeManager<D, T, MAX_DIRS, MAX_FILES, MAX_VOLUMES>,
+        volume_mgr: &'a VolumeManager<D, T, MAX_DIRS, MAX_FILES, MAX_VOLUMES>,
     ) -> File<'a, D, T, MAX_DIRS, MAX_FILES, MAX_VOLUMES> {
         File {
             raw_file,
@@ -82,13 +82,13 @@ where
     ///
     /// Returns how many bytes were read, or an error.
     #[maybe_async::maybe_async]
-    pub async fn read(&mut self, buffer: &mut [u8]) -> Result<usize, crate::Error<D::Error>> {
+    pub async fn read(&self, buffer: &mut [u8]) -> Result<usize, crate::Error<D::Error>> {
         self.volume_mgr.read(self.raw_file, buffer).await
     }
 
     /// Write to the file
     #[maybe_async::maybe_async]
-    pub async fn write(&mut self, buffer: &[u8]) -> Result<(), crate::Error<D::Error>> {
+    pub async fn write(&self, buffer: &[u8]) -> Result<(), crate::Error<D::Error>> {
         self.volume_mgr.write(self.raw_file, buffer).await
     }
 
@@ -138,7 +138,7 @@ where
 
     /// Flush any written data by updating the directory entry.
     #[maybe_async::maybe_async]
-    pub async fn flush(&mut self) -> Result<(), Error<D::Error>> {
+    pub async fn flush(&self) -> Result<(), Error<D::Error>> {
         self.volume_mgr.flush_file(self.raw_file).await
     }
 
@@ -200,7 +200,7 @@ impl<
         if buf.is_empty() {
             Ok(0)
         } else {
-            self.read(buf).await
+            Self::read(self, buf).await
         }
     }
 }
@@ -218,12 +218,12 @@ impl<
         if buf.is_empty() {
             Ok(0)
         } else {
-            self.write(buf).await?;
+            Self::write(self, buf).await?;
             Ok(buf.len())
         }
     }
-    #[maybe_async::maybe_async]
 
+    #[maybe_async::maybe_async]
     async fn flush(&mut self) -> Result<(), Self::Error> {
         Self::flush(self).await
     }

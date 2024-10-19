@@ -57,7 +57,7 @@ impl RawDirectory {
         const MAX_VOLUMES: usize,
     >(
         self,
-        volume_mgr: &mut VolumeManager<D, T, MAX_DIRS, MAX_FILES, MAX_VOLUMES>,
+        volume_mgr: &VolumeManager<D, T, MAX_DIRS, MAX_FILES, MAX_VOLUMES>,
     ) -> Directory<D, T, MAX_DIRS, MAX_FILES, MAX_VOLUMES>
     where
         D: crate::BlockDevice,
@@ -87,7 +87,7 @@ pub struct Directory<
     T: crate::TimeSource,
 {
     raw_directory: RawDirectory,
-    volume_mgr: &'a mut VolumeManager<D, T, MAX_DIRS, MAX_FILES, MAX_VOLUMES>,
+    volume_mgr: &'a VolumeManager<D, T, MAX_DIRS, MAX_FILES, MAX_VOLUMES>,
 }
 
 impl<'a, D, T, const MAX_DIRS: usize, const MAX_FILES: usize, const MAX_VOLUMES: usize>
@@ -99,7 +99,7 @@ where
     /// Create a new `Directory` from a `RawDirectory`
     pub fn new(
         raw_directory: RawDirectory,
-        volume_mgr: &'a mut VolumeManager<D, T, MAX_DIRS, MAX_FILES, MAX_VOLUMES>,
+        volume_mgr: &'a VolumeManager<D, T, MAX_DIRS, MAX_FILES, MAX_VOLUMES>,
     ) -> Directory<'a, D, T, MAX_DIRS, MAX_FILES, MAX_VOLUMES> {
         Directory {
             raw_directory,
@@ -112,7 +112,7 @@ where
     /// You can then read the directory entries with `iterate_dir` and `open_file_in_dir`.
     #[maybe_async::maybe_async]
     pub async fn open_dir<N>(
-        &mut self,
+        &self,
         name: N,
     ) -> Result<Directory<D, T, MAX_DIRS, MAX_FILES, MAX_VOLUMES>, Error<D::Error>>
     where
@@ -138,7 +138,7 @@ where
 
     /// Look in a directory for a named file.
     #[maybe_async::maybe_async]
-    pub async fn find_directory_entry<N>(&mut self, name: N) -> Result<DirEntry, Error<D::Error>>
+    pub async fn find_directory_entry<N>(&self, name: N) -> Result<DirEntry, Error<D::Error>>
     where
         N: ToShortFileName,
     {
@@ -156,7 +156,7 @@ where
     ///
     /// </div>
     #[maybe_async::maybe_async]
-    pub async fn iterate_dir<F>(&mut self, func: F) -> Result<(), Error<D::Error>>
+    pub async fn iterate_dir<F>(&self, func: F) -> Result<(), Error<D::Error>>
     where
         F: FnMut(&DirEntry),
     {
@@ -166,7 +166,7 @@ where
     /// Open a file with the given full path. A file can only be opened once.
     #[maybe_async::maybe_async]
     pub async fn open_file_in_dir<N>(
-        &mut self,
+        &self,
         name: N,
         mode: crate::Mode,
     ) -> Result<crate::File<D, T, MAX_DIRS, MAX_FILES, MAX_VOLUMES>, crate::Error<D::Error>>
@@ -181,7 +181,7 @@ where
 
     /// Delete a closed file with the given filename, if it exists.
     #[maybe_async::maybe_async]
-    pub async fn delete_file_in_dir<N>(&mut self, name: N) -> Result<(), Error<D::Error>>
+    pub async fn delete_file_in_dir<N>(&self, name: N) -> Result<(), Error<D::Error>>
     where
         N: ToShortFileName,
     {
@@ -190,7 +190,7 @@ where
 
     /// Make a directory inside this directory
     #[maybe_async::maybe_async]
-    pub async fn make_dir_in_dir<N>(&mut self, name: N) -> Result<(), Error<D::Error>>
+    pub async fn make_dir_in_dir<N>(&self, name: N) -> Result<(), Error<D::Error>>
     where
         N: ToShortFileName,
     {
