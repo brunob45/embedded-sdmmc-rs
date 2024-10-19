@@ -74,13 +74,7 @@ pub mod filesystem;
 pub mod sdcard;
 
 use core::fmt::Debug;
-
-#[cfg(feature="is_sync")]
 use embedded_io::ErrorKind;
-
-#[cfg(not(feature="is_sync"))]
-use embedded_io_async::ErrorKind;
-
 use filesystem::Handle;
 
 #[doc(inline)]
