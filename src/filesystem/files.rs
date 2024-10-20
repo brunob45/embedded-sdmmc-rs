@@ -4,10 +4,10 @@ use crate::{
     BlockDevice, Error, RawVolume, VolumeManager,
 };
 
-#[cfg(feature="is_sync")]
+#[cfg(feature = "is_sync")]
 use embedded_io::{ErrorType, Read, Seek, SeekFrom, Write};
 
-#[cfg(not(feature="is_sync"))]
+#[cfg(not(feature = "is_sync"))]
 use embedded_io_async::{ErrorType, Read, Seek, SeekFrom, Write};
 
 /// A handle for an open file on disk.

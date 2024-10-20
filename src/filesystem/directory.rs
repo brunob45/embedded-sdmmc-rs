@@ -143,7 +143,8 @@ where
         N: ToShortFileName,
     {
         self.volume_mgr
-            .find_directory_entry(self.raw_directory, name).await
+            .find_directory_entry(self.raw_directory, name)
+            .await
     }
 
     /// Call a callback function for each directory entry in a directory.
@@ -175,7 +176,8 @@ where
     {
         let f = self
             .volume_mgr
-            .open_file_in_dir(self.raw_directory, name, mode).await?;
+            .open_file_in_dir(self.raw_directory, name, mode)
+            .await?;
         Ok(f.to_file(self.volume_mgr))
     }
 
@@ -185,7 +187,9 @@ where
     where
         N: ToShortFileName,
     {
-        self.volume_mgr.delete_file_in_dir(self.raw_directory, name).await
+        self.volume_mgr
+            .delete_file_in_dir(self.raw_directory, name)
+            .await
     }
 
     /// Make a directory inside this directory
@@ -194,7 +198,9 @@ where
     where
         N: ToShortFileName,
     {
-        self.volume_mgr.make_dir_in_dir(self.raw_directory, name).await
+        self.volume_mgr
+            .make_dir_in_dir(self.raw_directory, name)
+            .await
     }
 
     /// Convert back to a raw directory
